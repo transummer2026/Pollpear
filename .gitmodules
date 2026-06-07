@@ -10,9 +10,6 @@
 [submodule "Pollpear_cyber"]
 	path = Pollpear_cyber
 	url = git@github.com:transummer2026/Pollpear_cyber.git
-[submodule ".github"]
-	path = .github
-	url = git@github.com:transummer2026/.github.git
 [submodule "Pollpear_gateway"]
 	path = Pollpear_gateway
 	url = git@github.com:transummer2026/Pollpear_gateway.git
