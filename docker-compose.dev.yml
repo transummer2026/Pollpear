@@ -9,6 +9,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-pollpear}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./Pollpear_infra/postgres:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -25,6 +26,7 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
+      - ./Pollpear_infra/redis:/redis-init:ro
     ports:
       - "6379:6379"
     healthcheck:
@@ -33,6 +35,24 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./Pollpear_gateway
+      dockerfile: Dockerfile.dev
+    container_name: pollpear-gateway
+    environment:
+      RUST_LOG: ${RUST_LOG:-debug}
+      PORT: "8080"
+      API_URL: http://api:3000
+      FRONTEND_URL: http://frontend:5173
+    volumes:
+      - ./Pollpear_gateway:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+    restart: on-failure
 
   api:
     build:
@@ -46,34 +66,41 @@ services:
       REDIS_URL: redis://redis:6379
     volumes:
       - ./Pollpear_api:/app
-      - api-node-modules:/app/node_modules
-    ports:
-      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    restart: unless-stopped
+    restart: on-failure
 
   frontend:
     build:
       context: ./Pollpear_frontend
       dockerfile: Dockerfile.dev
     container_name: pollpear-frontend
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     environment:
       NODE_ENV: development
-      VITE_API_URL: http://localhost:3000
+      VITE_API_URL: http://localhost:8080
     volumes:
       - ./Pollpear_frontend:/app
-      - frontend-node-modules:/app/node_modules
     ports:
       - "5173:5173"
+    restart: on-failure
+
+  vault:
+    image: ghcr.io/transummer2026/vault:latest
+    container_name: pollpear-vault
+    command: vault server -dev -dev-root-token-id=${VAULT_ROOT_TOKEN:-pollpear-dev-token}
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN:-pollpear-dev-token}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
     restart: unless-stopped
 
 volumes:
   postgres-data:
   redis-data:
-  api-node-modules:
-  frontend-node-modules:
+# TODO: acces a vault direct ou via gateway?
