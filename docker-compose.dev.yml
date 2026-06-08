@@ -1,0 +1,79 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: pollpear-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pollpear}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pollpear}
+      POSTGRES_DB: ${POSTGRES_DB:-pollpear}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pollpear} -d ${POSTGRES_DB:-pollpear}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: pollpear-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./Pollpear_api
+      dockerfile: Dockerfile.dev
+    container_name: pollpear-api
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pollpear}:${POSTGRES_PASSWORD:-pollpear}@postgres:5432/${POSTGRES_DB:-pollpear}
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./Pollpear_api:/app
+      - api-node-modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Pollpear_frontend
+      dockerfile: Dockerfile.dev
+    container_name: pollpear-frontend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
+    volumes:
+      - ./Pollpear_frontend:/app
+      - frontend-node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  api-node-modules:
+  frontend-node-modules:
