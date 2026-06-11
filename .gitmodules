@@ -4,9 +4,6 @@
 [submodule "Pollpear_frontend"]
 	path = Pollpear_frontend
 	url = git@github.com:transummer2026/Pollpear_frontend.git
-[submodule "Pollpear_api"]
-	path = Pollpear_api
-	url = git@github.com:transummer2026/Pollpear_api.git
 [submodule "Pollpear_cyber"]
 	path = Pollpear_cyber
 	url = git@github.com:transummer2026/Pollpear_cyber.git
@@ -19,3 +16,6 @@
 [submodule "docs"]
 	path = docs
 	url = git@github.com:transummer2026/docs.git
+[submodule "Pollpear_backend"]
+	path = Pollpear_backend
+	url = git@github.com:transummer2026/Pollpear_backend.git
