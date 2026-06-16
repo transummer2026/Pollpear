@@ -25,7 +25,7 @@ jobs:
       - name: Update submodules
         run: |
           git submodule sync --recursive
-          git submodule update --init --recursive --remote --depth=1
+          git submodule update --init --recursive --remote
 
       - name: Configure Git
         run: |
