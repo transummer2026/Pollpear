@@ -21,7 +21,7 @@
 [submodule "docs"]
 	path = docs
 	url = git@github.com:transummer2026/docs.git
-	branch = dev
+	branch = main
 [submodule "Pollpear_backend"]
 	path = Pollpear_backend
 	url = git@github.com:transummer2026/Pollpear_backend.git
