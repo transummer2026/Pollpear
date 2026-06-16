@@ -4,8 +4,6 @@ on:
   workflow_dispatch: 
   repository_dispatch:
     types: [submodule-update]   
-  push:
-    branches: [dev, test/ci]
 
 jobs:
   update-submodules:
