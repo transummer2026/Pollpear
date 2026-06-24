@@ -32,7 +32,7 @@ jobs:
       # (= au merge de la Release-PR, qui sert de gate humain de prod)
       - name: Checkout recursive (récupère le code des submodules)
         if: steps.release.outputs.release_created == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 1
