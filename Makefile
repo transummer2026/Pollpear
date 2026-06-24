@@ -1,3 +1,10 @@
+sync:
+	@echo "→ Fetch repo principal..."
+	@git fetch --all
+	@echo "→ Sync submodules (checkout branche trackée, pas HEAD détaché)..."
+	@git submodule foreach 'branch=$$(git config -f "$$toplevel/.gitmodules" "submodule.$$name.branch" 2>/dev/null || echo dev); echo "  $$name → $$branch"; git fetch origin; git checkout "$$branch"; git pull --rebase origin "$$branch"'
+	@echo "✓ Tout est synced"
+
 up:
 	docker compose -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d
 
