@@ -1,6 +1,9 @@
 sync:
-	@echo "→ Fetch repo principal..."
+	@echo "→ Sync repo principal..."
 	@git fetch --all
+	@git stash --include-untracked --quiet || true
+	@git pull --rebase
+	@git stash pop --quiet 2>/dev/null || true
 	@echo "→ Sync submodules (checkout branche trackée, pas HEAD détaché)..."
 	@git submodule foreach 'branch=$$(git config -f "$$toplevel/.gitmodules" "submodule.$$name.branch" 2>/dev/null || echo dev); echo "  $$name → $$branch"; git fetch origin; git checkout "$$branch"; git pull --rebase origin "$$branch"'
 	@echo "✓ Tout est synced"
