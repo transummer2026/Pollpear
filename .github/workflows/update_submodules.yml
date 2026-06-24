@@ -1,9 +1,13 @@
 name: Update Git Submodules
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   repository_dispatch:
-    types: [submodule-update]   
+    types: [submodule-update]
+
+concurrency:
+  group: pollpear-submodule-update
+  cancel-in-progress: false
 
 jobs:
   update-submodules:
@@ -11,14 +15,19 @@ jobs:
     steps:
 
       # https://medium.com/@rezaur.official/integrating-git-submodules-in-ci-c-the-real-world-guide-no-one-writes-497c7287af9f
-      # actions/checkout@v3 deprecated -> v4
-      - name: Checkout repo (include aubmodule)
-        uses: actions/checkout@v4
+      - name: Checkout repo (superprojet seul)
+        uses: actions/checkout@v7
         with:
-          submodules: recursive
+          submodules: false
           persist-credentials: true
           fetch-depth: 0
           token: ${{ secrets.DISPATCH_TOKEN }}
+
+      - name: Configurer l'auth des sous-modules (SSH -> HTTPS + token)
+        env:
+          GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
+        run: |
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "git@github.com:"
 
       - name: Update submodules
         run: |
