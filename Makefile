@@ -1,3 +1,6 @@
+ENV_FILE := $(wildcard .env)
+COMPOSE_FLAGS := $(if $(ENV_FILE),--env-file .env,)
+
 sync:
 	@echo "→ Sync repo principal..."
 	@git fetch --all
@@ -9,13 +12,13 @@ sync:
 	@echo "✓ Tout est synced"
 
 up:
-	docker compose -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d
 
 down:
-	docker compose -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down
 
 up_prod:
-	docker compose -f ./Pollpear_infra/compose.yml --profile prod up -d
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml --profile prod up -d
 
 down_prod:
-	docker compose -f ./Pollpear_infra/compose.yml --profile prod down
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml --profile prod down
