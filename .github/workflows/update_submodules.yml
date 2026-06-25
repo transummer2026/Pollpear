@@ -16,7 +16,7 @@ jobs:
 
       - name: Generate GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
@@ -67,7 +67,7 @@ jobs:
 
       - name: release-please prerelease
         id: release
-        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071
+        uses: googleapis/release-please-action@v4
         with:
           token: ${{ steps.app-token.outputs.token }}
           target-branch: dev
@@ -80,4 +80,25 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr merge ${{ fromJSON(steps.release.outputs.pr).number }} --squash --delete-branch
+
+      - name: Notify Discord - nouvelle release (@everyone)
+        if: steps.release.outputs.release_created == 'true'
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_GLOBAL }}
+          content: "@everyone"
+          status: success
+          title: " Nouvelle release Pollpear - ${{ steps.release.outputs.tag_name }}"
+          description: "Les sous-modules ont été synchronisés et la stack taggée en `${{ steps.release.outputs.tag_name }}`."
+          color: 0x2ECC71
+
+      - name: Notify Discord - échec sync (sans ping)
+        if: failure()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_GLOBAL }}
+          status: failure
+          title: "❌ Échec - Update Git Submodules (Pollpear)"
+          description: "La sync des sous-modules a échoué. Voir les logs du run."
+          color: 0xFF0000
 
