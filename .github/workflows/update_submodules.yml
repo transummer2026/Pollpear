@@ -13,6 +13,6 @@ jobs:
   update-submodules:
     uses: transummer2026/.github/.github/workflows/update-submodules.yml@main
     secrets:
-      APP_ID: ${{ secrets.APP_ID }}
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
       APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
       DISCORD_WEBHOOK_GLOBAL: ${{ secrets.DISCORD_WEBHOOK_GLOBAL }}
