@@ -11,73 +11,8 @@ concurrency:
 
 jobs:
   update-submodules:
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
-      # https://medium.com/@rezaur.official/integrating-git-submodules-in-ci-c-the-real-world-guide-no-one-writes-497c7287af9f
-      - name: Checkout repo (superprojet seul)
-        uses: actions/checkout@v7
-        with:
-          submodules: false
-          persist-credentials: true
-          fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
-
-      - name: Configurer l'auth des sous-modules (SSH -> HTTPS + token)
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "git@github.com:"
-
-      - name: Update submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive --remote
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Guard
-        id: guard
-        run: |
-          if git diff --quiet && git diff --cached --quiet; then
-            echo "No changes in submodules."
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-          echo "Submodules updated. Committing changes."
-
-      - name: commit and push changes
-        if: steps.guard.outputs.changed == 'true'
-        run: |
-          git add .
-          git commit -m "feat: Update submodules"
-          git push origin dev
-
-      - name: release-please prerelease
-        id: release
-        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          target-branch: dev
-          config-file: release-please-config-dev.json
-          manifest-file: .release-please-manifest.json
-
-      - name: auto merge release PR
-        if: steps.release.outputs.prs_created == 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          gh pr merge ${{ fromJSON(steps.release.outputs.pr).number }} --squash --delete-branch
-
+    uses: transummer2026/.github/.github/workflows/update-submodules.yml@main
+    secrets:
+      APP_ID: ${{ secrets.APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      DISCORD_WEBHOOK_GLOBAL: ${{ secrets.DISCORD_WEBHOOK_GLOBAL }}
