@@ -10,6 +10,7 @@ all:
 	@echo "  - down_prod: Stop the production containers"
 	@echo "  - fclean: Remove all containers, networks, and volumes"
 	@echo "  - re: Rebuild and restart the development containers"
+	@echo "  - re_grafana: Reset Grafana from scratch (container + data volume)"
 
 sync:
 	@echo "→ Sync repo principal..."
@@ -38,3 +39,8 @@ fclean:
 	-docker rm -f $$(docker ps -aq --filter "name=pollpear") 2>/dev/null || true
 
 re: fclean up
+
+re_grafana:
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml rm -sf grafana
+	-docker volume rm pollpear_infra_grafana-data
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d grafana
