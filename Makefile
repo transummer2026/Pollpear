@@ -28,11 +28,8 @@ up:
 down:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down
 
-up_prod:
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml --profile prod up -d
-
-down_prod:
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml --profile prod down
+watch:
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml watch
 
 fclean:
 	-docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down --rmi all -v --remove-orphans --timeout 15
