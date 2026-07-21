@@ -14,7 +14,7 @@ all:
 	@echo "  - down: Stop the development containers"
 	@echo "  - up_prod: Start the production containers"
 	@echo "  - down_prod: Stop the production containers"
-	@echo "  - fclean: Remove all containers, networks, and volumes"
+	@echo "  - fclean: Remove containers, networks, volumes and images of every stack (dev light, dev full, prod/staging)"
 	@echo "  - re: Rebuild and restart the development containers"
 	@echo "  - re_grafana: Reset Grafana from scratch (container + data volume)"
 	@echo "  - b_fclean: Delete local branches whose remote branch is gone (repo + submodules)"
@@ -35,19 +35,29 @@ up:
 down:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down
 
+up_dev_full:
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml up -d
+down_dev_full:
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml down
+
+up_prod:
+	@bash ./Pollpear_infra/scripts/ensure-certs.sh
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml up -d --build --wait
+down_prod:
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml down
+
 watch:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml watch
 
 fclean:
-	-docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.monitor.dev.yml down --rmi all -v --remove-orphans --timeout 15
-	-docker rm -f $$(docker ps -aq --filter "name=pollpear") 2>/dev/null || true
+	@bash ./Pollpear_infra/scripts/fclean.sh
 
 re: fclean up
 
 re_grafana:
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml rm -sf grafana
-	-docker volume rm pollpear_infra_grafana-data
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d grafana
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml rm -sf grafana
+	-docker volume rm pollpear-grafana-data
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml up -d grafana
 
 b_fclean:
 	@for repo in . $$(git config --file .gitmodules --get-regexp path | awk '{print $$2}'); do \
