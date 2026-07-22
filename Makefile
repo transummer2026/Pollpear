@@ -10,7 +10,7 @@ RESET  := \033[0m
 all:
 	@echo "→ Makefile commands:"
 	@echo "  - sync: Sync the repository and submodules"
-	@echo "  - up: Start the development containers"
+	@echo "  - up: Start the development containers (provisions Garage)"
 	@echo "  - down: Stop the development containers"
 	@echo "  - up_prod: Start the production containers"
 	@echo "  - down_prod: Stop the production containers"
@@ -31,6 +31,7 @@ sync:
 
 up:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d
+	@bash ./Pollpear_infra/scripts/garage-init.sh
 
 down:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down
