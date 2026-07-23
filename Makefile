@@ -38,17 +38,20 @@ down:
 
 up_dev_full:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml up -d
+	@bash ./Pollpear_infra/scripts/garage-init.sh
 down_dev_full:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml down
 
 up_prod:
 	@bash ./Pollpear_infra/scripts/ensure-certs.sh
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml up -d --build --wait
+	@bash ./Pollpear_infra/scripts/garage-init.sh
 down_prod:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml down
 
 watch:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml watch
+	@bash ./Pollpear_infra/scripts/garage-init.sh
 
 fclean:
 	@bash ./Pollpear_infra/scripts/fclean.sh
