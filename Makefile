@@ -7,6 +7,12 @@ RED    := \033[0;31m
 CYAN   := \033[0;36m
 RESET  := \033[0m
 
+GREEN  := \033[0;32m
+YELLOW := \033[0;33m
+RED    := \033[0;31m
+CYAN   := \033[0;36m
+RESET  := \033[0m
+
 all:
 	@echo "→ Makefile commands:"
 	@echo "  - sync: Sync the repository and submodules"
@@ -14,6 +20,8 @@ all:
 	@echo "  - down: Stop the development containers"
 	@echo "  - up_prod: Start the production containers"
 	@echo "  - down_prod: Stop the production containers"
+	@echo "  - deploy: Run the full CD sequence (migrations + up prod + image prune)"
+	@echo "  - fclean: Remove containers, networks, volumes and images of every stack (dev light, dev full, prod/staging)"
 	@echo "  - fclean: Remove containers, networks, volumes and images of every stack (dev light, dev full, prod/staging)"
 	@echo "  - re: Rebuild and restart the development containers"
 	@echo "  - re_grafana: Reset Grafana from scratch (container + data volume)"
@@ -49,7 +57,10 @@ up_prod:
 down_prod:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml down
 
-watch: up
+deploy:
+	@bash ./Pollpear_infra/scripts/deploy.sh
+
+watch:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml watch
 
 fclean:
