@@ -60,7 +60,7 @@ down_prod:
 deploy:
 	@bash ./Pollpear_infra/scripts/deploy.sh
 
-watch:
+watch: up
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml watch
 
 fclean:
