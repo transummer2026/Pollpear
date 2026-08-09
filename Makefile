@@ -43,7 +43,6 @@ up:
 
 down:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml down
-	docker volume rm pollpear-vault-approle
 
 up_dev_full:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml up -d
