@@ -18,6 +18,7 @@ all:
 	@echo "  - sync: Sync the repository and submodules"
 	@echo "  - up: Start the development containers (provisions Garage)"
 	@echo "  - down: Stop the development containers"
+	@echo "  - seed: Seed the database (runs inside the backend container, via Vault)"
 	@echo "  - up_prod: Start the production containers"
 	@echo "  - down_prod: Stop the production containers"
 	@echo "  - deploy: Run the full CD sequence (migrations + up prod + image prune)"
@@ -63,6 +64,9 @@ deploy:
 
 watch: up
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml watch
+
+seed: up
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml run --rm backend npm run seed
 
 fclean:
 	@bash ./Pollpear_infra/scripts/fclean.sh
