@@ -39,7 +39,7 @@ sync:
 	@echo "✓ Tout est synced"
 
 up:
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml up -d --build
 	@bash ./Pollpear_infra/scripts/garage-init.sh
 
 down:
