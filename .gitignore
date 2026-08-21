@@ -10,6 +10,9 @@
 
 compose.override.yml
 
+# warnings du smoke test (deploy.sh → notify-discord.sh)
+.deploy-warnings
+
 *.log
 
 
