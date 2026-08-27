@@ -1,5 +1,6 @@
 ENV_FILE := $(wildcard .env)
 COMPOSE_FLAGS := $(if $(ENV_FILE),--env-file .env,)
+PROD_FILES := -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml
 
 GREEN  := \033[0;32m
 YELLOW := \033[0;33m
@@ -53,11 +54,13 @@ down_dev_full:
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.dev.yml -f ./Pollpear_infra/compose.monitor.dev.yml down
 
 up_prod:
+	docker compose $(COMPOSE_FLAGS) $(PROD_FILES) build
+	@bash ./Pollpear_infra/scripts/migrate.sh
 	@bash ./Pollpear_infra/scripts/ensure-certs.sh
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml up -d --build --wait
+	docker compose $(COMPOSE_FLAGS) $(PROD_FILES) up -d --wait
 	@bash ./Pollpear_infra/scripts/garage-init.sh
 down_prod:
-	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.monitor.yml -f ./Pollpear_infra/compose.prod.yml down
+	docker compose $(COMPOSE_FLAGS) $(PROD_FILES) down
 
 deploy:
 	@bash ./Pollpear_infra/scripts/deploy.sh
