@@ -22,6 +22,7 @@ all:
 	@echo "  - seed: Seed the database (runs inside the backend container, via Vault)"
 	@echo "  - up_prod: Start the production containers"
 	@echo "  - down_prod: Stop the production containers"
+	@echo "  - seed_prod: Seed the prod/staging database (once, on an empty database)"
 	@echo "  - deploy: Run the full CD sequence (migrations + up prod + image prune)"
 	@echo "  - fclean: Remove containers, networks, volumes and images of every stack (dev light, dev full, prod/staging)"
 	@echo "  - fclean: Remove containers, networks, volumes and images of every stack (dev light, dev full, prod/staging)"
@@ -70,6 +71,9 @@ watch: up
 
 seed: up
 	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml run --rm backend npm run seed
+
+seed_prod:
+	docker compose $(COMPOSE_FLAGS) -f ./Pollpear_infra/compose.yml -f ./Pollpear_infra/compose.dev.yml run --rm --build --no-deps backend npm run seed
 
 fclean:
 	@bash ./Pollpear_infra/scripts/fclean.sh
