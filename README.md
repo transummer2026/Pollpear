@@ -3,6 +3,33 @@
 Superprojet Pollpear : orchestre les sous-modules (`frontend`, `backend`, `gateway`,
 `ai`, `cyber`, `infra`, `docs`) et l'infra de déploiement.
 
+## Démarrage sur une machine vierge
+
+Prérequis : `git`, `make`, Docker Engine avec Compose v2, environ 18 Go de disque libre
+(images, cache de build et dépôts), et une clé SSH autorisée sur l'organisation
+`transummer2026`.
+
+```sh
+git clone --recursive git@github.com:transummer2026/Pollpear.git
+cd Pollpear
+```
+
+Les sous-modules sont épinglés : `--recursive` est obligatoire, et après chaque `git pull`
+il faut relancer `git submodule update --init --recursive`.
+
+Une fois les deux `.env` en place (voir plus bas), lever la stack puis semer la base.
+`make seed_prod` est **obligatoire** et ne fonctionne que sur une base vide : c'est lui qui
+crée les comptes.
+
+```sh
+make up_prod      # build, migrations, certificats, up --wait
+make seed_prod    # une seule fois, sur une base vide
+```
+
+L'application répond ensuite sur l'URL formée par `DOMAIN` et `NGINX_HTTPS_PORT` du `.env`
+racine — sur les machines de test, <https://localhost:8443/>. Le certificat est auto-signé :
+le navigateur demande une confirmation.
+
 ## Déploiement
 
 [![Deploy dev.pollpear.com](https://img.shields.io/badge/Deploy-dev.pollpear.com-2ea44f?style=for-the-badge&logo=github)](https://github.com/transummer2026/Pollpear/compare/staging...dev?quick_pull=1)
