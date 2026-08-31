@@ -30,6 +30,27 @@ L'application répond ensuite sur l'URL formée par `DOMAIN` et `NGINX_HTTPS_POR
 racine — sur les machines de test, <https://localhost:8443/>. Le certificat est auto-signé :
 le navigateur demande une confirmation.
 
+### Les deux fichiers `.env`
+
+Ils ne sont pas versionnés, donc absents du clone. Les demander à l'équipe et les déposer
+exactement ici :
+
+| Fichier | Contenu |
+| :------ | :------ |
+| `.env` (racine du superrepo) | `DOMAIN`, ports publiés, `SKIP_LETSENCRYPT`, `VAULT_ROOT_TOKEN` |
+| `Pollpear_cyber/.env` | secrets applicatifs, identifiants OAuth, mots de passe des services |
+
+Le second est monté en lecture seule dans le conteneur Vault, qui tourne en `uid 100` : en
+`600` il ne peut pas le lire, et la stack ne démarre pas. Le `.env` racine, lui, n'est monté
+dans aucun conteneur — il doit rester lisible par vous seul.
+
+```sh
+chmod 600 .env && chmod 644 Pollpear_cyber/.env
+```
+
+Sans le `.env` racine, l'erreur tombe beaucoup plus loin, sous la forme
+`required variable DOMAIN is missing a value`.
+
 ## Déploiement
 
 [![Deploy dev.pollpear.com](https://img.shields.io/badge/Deploy-dev.pollpear.com-2ea44f?style=for-the-badge&logo=github)](https://github.com/transummer2026/Pollpear/compare/staging...dev?quick_pull=1)
