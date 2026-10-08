@@ -27,6 +27,7 @@ and a hardened, fully containerized deployment.
 - [Database Schema](#database-schema)
 - [Features List](#features-list)
 - [Modules](#modules)
+- [Known Limitations](#known-limitations)
 - [License](#license)
 
 ---
@@ -74,14 +75,14 @@ This section takes a newcomer from an empty machine to a fully running Pollpear.
 
 ### Prerequisites
 
-| Requirement                          | Details                                                                                                                                 |
-| :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| **Git**                        | With submodule support (any recent version).                                                                                            |
-| **make**                       | GNU Make.                                                                                                                               |
-| **Docker Engine + Compose v2** | The`docker compose` (v2) subcommand is required. **Rootless Docker is supported and is what the evaluation machine uses.**      |
-| **Disk space**                 | ≈ 18 GB free for images, build cache and repositories. A cold, full rebuild can take 20–30 min, so keep the build cache between runs. |
-| **SSH access**                 | An SSH key authorized on the`transummer2026` GitHub organization, to clone the repo and its private submodules over SSH.              |
-| **The two `.env` files**     | Not versioned — obtained from the team and placed as described[below](#the-two-env-files).                                              |
+| Requirement | Details |
+| :---------- | :------ |
+| **Git** | With submodule support (any recent version). |
+| **make** | GNU Make. |
+| **Docker Engine + Compose v2** | The `docker compose` (v2) subcommand is required. **Rootless Docker is supported and is what the evaluation machine uses.** |
+| **Disk space** | ≈ 18 GB free for images, build cache and repositories. A cold, full rebuild can take 20–30 min, so keep the build cache between runs. |
+| **SSH access** | An SSH key authorized on the `transummer2026` GitHub organization, to clone the repo and its private submodules over SSH. |
+| **The two `.env` files** | Not versioned — obtained from the team and placed as described [below](#the-two-env-files). |
 
 > **Ports & rootless Docker.** Under rootless Docker, unprivileged users cannot bind ports
 > below 1024. On the evaluation machine the stack is therefore published on **8080 (HTTP)**
@@ -147,10 +148,10 @@ The certificate is self-signed, so the browser shows a warning the first time �
 Both files are git-ignored, so a fresh clone does not contain them. Ask the team for them
 and place them **exactly** here:
 
-| File                      | Mounted where                                       | Contents (summary)                                                                                                                                                                               |
-| :------------------------ | :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.env` (superrepo root) | Not mounted in any container                        | Host-structural config:`DOMAIN`, `ACME_EMAIL`, `VAULT_ADDR`, `VAULT_ROOT_TOKEN`, published ports (`NGINX_HTTP_PORT`, `NGINX_HTTPS_PORT`, `REDIS_HOST_PORT`), `SKIP_LETSENCRYPT`. |
-| `Pollpear_cyber/.env`   | Mounted**read-only into the Vault container** | Application secrets: DB/Redis/Grafana passwords, the NestJS pepper, Garage tokens, htpasswd creds, and the OAuth client IDs/secrets + redirect URIs.                                             |
+| File | Mounted where | Contents (summary) |
+| :--- | :------------ | :----------------- |
+| `.env` (superrepo root) | Not mounted in any container | Host-structural config: `DOMAIN`, `ACME_EMAIL`, `VAULT_ADDR`, `VAULT_ROOT_TOKEN`, published ports (`NGINX_HTTP_PORT`, `NGINX_HTTPS_PORT`, `REDIS_HOST_PORT`), `SKIP_LETSENCRYPT`. |
+| `Pollpear_cyber/.env` | Mounted **read-only into the Vault container** | Application secrets: DB/Redis/Grafana passwords, the NestJS pepper, Garage tokens, htpasswd creds, and the OAuth client IDs/secrets + redirect URIs. |
 
 A commented template for the root file is provided as **`.env.example`**:
 
@@ -183,13 +184,14 @@ SKIP_LETSENCRYPT="1"
 >
 > **OAuth redirect URIs must carry the published port.** When running on `:8443`, the
 > redirect URIs in `Pollpear_cyber/.env` (and the ones declared at each provider) must be,
-> e.g., `https://localhost:8443/api/auth/oauth/github/callback`. GitHub, 42 and Google are
-> wired this way.
+> e.g., `https://localhost:8443/api/auth/oauth/github/callback`. GitHub and 42 are wired
+> this way; Google is currently disabled provider-side (see
+> [Known Limitations](#known-limitations)).
 
 ### Accessing the application
 
 - **URL:** the app answers on `https://<DOMAIN>:<NGINX_HTTPS_PORT>/`. On the evaluation
-  machine that is **[https://localhost:8443/](https://localhost:8443/)** (self-signed certificate → accept the
+  machine that is **<https://localhost:8443/>** (self-signed certificate → accept the
   browser warning).
 - **Login field is the email**, not the username.
 - **Demo accounts** (created by `make seed_prod`) share the password **`Password123!`** and
@@ -209,22 +211,22 @@ docker exec pollpear-postgres psql -U pollpear -d pollpear -tAc \
 
 All `make` targets (root `Makefile`):
 
-| Command                                | Effect                                                                                                                                           |
-| :------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `make up_prod`                       | **Primary start.** Build, migrate, ensure certs, `up --wait` (prod/staging stack).                                                       |
-| `make seed_prod`                     | Seed the prod/staging database —**once, on an empty DB**.                                                                                 |
-| `make down_prod`                     | Stop the prod/staging stack.**Volumes are preserved** (the seeded DB survives).                                                            |
-| `make up`                            | Dev stack (Pollpear services only), provisions Garage.                                                                                           |
-| `make up_dev_full`                   | Dev stack**plus** the monitoring stack (Prometheus/Grafana/…).                                                                            |
-| `make down` / `make down_dev_full` | Stop the dev / dev-full stack.                                                                                                                   |
-| `make seed`                          | Seed the dev database (runs inside the backend container, via Vault).                                                                            |
-| `make watch`                         | Dev stack with Compose`watch` (live rebuild on file changes).                                                                                  |
-| `make deploy`                        | Full CD sequence (migrations + prod up + image prune).                                                                                           |
-| `make re`                            | `fclean` then `up` (rebuild & restart the dev stack).                                                                                        |
-| `make re_grafana`                    | Reset Grafana from scratch (container + data volume).                                                                                            |
-| `make fclean`                        | Remove containers, networks,**volumes and images** of every stack. Destroys the seeded DB; a cold rebuild is 20–30 min. Use deliberately. |
-| `make b_fclean`                      | Delete local branches whose remote is gone (repo + submodules).                                                                                  |
-| `make sync`                          | Sync repo + submodules.**Avoid on the evaluation checkout** (see step 1).                                                                  |
+| Command | Effect |
+| :------ | :----- |
+| `make up_prod` | **Primary start.** Build, migrate, ensure certs, `up --wait` (prod/staging stack). |
+| `make seed_prod` | Seed the prod/staging database — **once, on an empty DB**. |
+| `make down_prod` | Stop the prod/staging stack. **Volumes are preserved** (the seeded DB survives). |
+| `make up` | Dev stack (Pollpear services only), provisions Garage. |
+| `make up_dev_full` | Dev stack **plus** the monitoring stack (Prometheus/Grafana/…). |
+| `make down` / `make down_dev_full` | Stop the dev / dev-full stack. |
+| `make seed` | Seed the dev database (runs inside the backend container, via Vault). |
+| `make watch` | Dev stack with Compose `watch` (live rebuild on file changes). |
+| `make deploy` | Full CD sequence (migrations + prod up + image prune). |
+| `make re` | `fclean` then `up` (rebuild & restart the dev stack). |
+| `make re_grafana` | Reset Grafana from scratch (container + data volume). |
+| `make fclean` | Remove containers, networks, **volumes and images** of every stack. Destroys the seeded DB; a cold rebuild is 20–30 min. Use deliberately. |
+| `make b_fclean` | Delete local branches whose remote is gone (repo + submodules). |
+| `make sync` | Sync repo + submodules. **Avoid on the evaluation checkout** (see step 1). |
 
 **Inspecting the running stack** (container names are prefixed `pollpear-`):
 
@@ -276,14 +278,14 @@ curl -sk -o /dev/null -w '%{http_code}\n' https://localhost:8443/
 
 ### Troubleshooting
 
-| Symptom                                                                       | Cause & fix                                                                                                                                                                                                                                                                          |
-| :---------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vault hook exited with status 1` at startup                                | `Pollpear_cyber/.env` is unreadable by Vault (mode `600`). Fix: `chmod 644 Pollpear_cyber/.env && make up_prod`.                                                                                                                                                               |
-| `required variable DOMAIN is missing a value`                               | The root`.env` is missing. Put it in place.                                                                                                                                                                                                                                        |
-| `Conflict … "…_pollpear-vault" is already in use` / `No such container` | Two Compose operations ran at once (e.g.`seed_prod` before `up_prod` finished). Ensure nothing is running (`pgrep -af 'make (up\|down\|seed)\|docker compose'`), then `make up_prod`. **Do not run `make fclean`** for this — it deletes the seeded DB.                |
-| Editing a`.env` value changes nothing                                       | Compose does not recreate an unchanged container; Vault still serves the old value. Recreate:`docker compose --env-file .env -f Pollpear_infra/compose.yml -f Pollpear_infra/compose.monitor.yml -f Pollpear_infra/compose.prod.yml up -d --force-recreate vault backend gateway`. |
-| `500` on `GET /rooms`                                                     | A nested`Pollpear_shared` is off the commit its parent pins. Realign it: `git -C <parent>/Pollpear_shared checkout <sha the parent pins>`.                                                                                                                                       |
-| OAuth callback never returns                                                  | The provider rejected the request upstream (redirect URI without the`:8443` port, or a client-secret mismatch). Read the provider's error.                                                                                                                                         |
+| Symptom | Cause & fix |
+| :------ | :---------- |
+| `vault hook exited with status 1` at startup | `Pollpear_cyber/.env` is unreadable by Vault (mode `600`). Fix: `chmod 644 Pollpear_cyber/.env && make up_prod`. |
+| `required variable DOMAIN is missing a value` | The root `.env` is missing. Put it in place. |
+| `Conflict … "…_pollpear-vault" is already in use` / `No such container` | Two Compose operations ran at once (e.g. `seed_prod` before `up_prod` finished). Ensure nothing is running (`pgrep -af 'make (up\|down\|seed)\|docker compose'`), then `make up_prod`. **Do not run `make fclean`** for this — it deletes the seeded DB. |
+| Editing a `.env` value changes nothing | Compose does not recreate an unchanged container; Vault still serves the old value. Recreate: `docker compose --env-file .env -f Pollpear_infra/compose.yml -f Pollpear_infra/compose.monitor.yml -f Pollpear_infra/compose.prod.yml up -d --force-recreate vault backend gateway`. |
+| `500` on `GET /rooms` | A nested `Pollpear_shared` is off the commit its parent pins. Realign it: `git -C <parent>/Pollpear_shared checkout <sha the parent pins>`. |
+| OAuth callback never returns | The provider rejected the request upstream (redirect URI without the `:8443` port, or a client-secret mismatch). Read the provider's error. |
 
 ---
 
@@ -352,13 +354,13 @@ content remain the team's own.
 
 Roles are based on the team's project-management minutes.
 
-| 42 login     | Member (GitHub)                    | Nickname | Role (per 2026-08-20 minutes)  |
-| :----------- | :--------------------------------- | :------- | :----------------------------- |
-| `blucken`  | `blucken`                        | Ben      | **Tech Lead**            |
-| `hlichten` | `Hyliah`                         | Hygie    | **Product Owner (PO)**   |
-| `jrandet`  | `jrandetdev` (Joséphine Randet) | Jo       | **Project Manager (PM)** |
-| `pdemont`  | `pieric-ux` (Pieric Demont)      | Pieric   | **Developer**            |
-| `raphalme` | `RaphyStoll` (Raphaël Ferreira) | Raph     | **Developer**            |
+| 42 login | Member (GitHub) | Nickname | Role (per 2026-08-20 minutes) |
+| :------- | :-------------- | :------- | :---------------------------- |
+| `blucken` | `blucken` | Ben | **Tech Lead** |
+| `hlichten` | `Hyliah` | Hygie | **Product Owner (PO)** |
+| `jrandet` | `jrandetdev` (Joséphine Randet) | Jo | **Project Manager (PM)** |
+| `pdemont` | `pieric-ux` (Pieric Demont) | Pieric | **Developer** |
+| `raphalme` | `RaphyStoll` (Raphaël Ferreira) | Raph | **Developer** |
 
 ---
 
@@ -453,27 +455,27 @@ most user-facing entities.
 
 ### Core tables
 
-| Table                                        | Purpose                  | Key fields & relations                                                                                                                                                                                                                                                                          |
-| :------------------------------------------- | :----------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **users**                              | Accounts & profiles      | `username` (unique), `email` (unique), `password_hash`, `role` (`user`/`moderator`/`admin`), `gender`, `birthdate`, `nationality`, profile fields, `is_online`, `is_email_verified`, `visibility`, `avatar_url`, `banner_url`, `user_theme`. Hub of the schema. |
-| **oauths**                             | Linked OAuth identities  | `provider` (`google`/`42`/`github`), `provider_user_id`, tokens, `grant_type`; unique `(provider, provider_user_id)`; FK → `users`.                                                                                                                                            |
-| **rooms**                              | Collaborative spaces     | `name`, `description`, `visibility` (public/private), `status`, `ends_at`; FK `created_by` → `users`.                                                                                                                                                                            |
-| **room_members**                       | Room membership          | unique`(room_id, user_id)`, `joined_at`; FKs → `rooms`, `users`.                                                                                                                                                                                                                       |
-| **invitations**                        | Room invites             | `status` (pending/accepted/rejected); unique `(invitee_id, room_id)`; FKs → `rooms` + inviter/invitee `users`.                                                                                                                                                                         |
-| **messages**                           | Room chat                | `content`, FKs `author_id` → `users`, `room_id` → `rooms`.                                                                                                                                                                                                                          |
-| **polls**                              | Polls                    | `type` (single/multiple/slider/free_field), `visibility`, `status` (pending/active/closed), `allow_change_vote`, `is_anonymous`, `published_at`, `ends_at`; FKs `created_by` → `users`, optional `room_id` → `rooms` (SetNull).                                         |
-| **options**                            | Poll options             | `text`, slider labels, `order`; FK → `polls`.                                                                                                                                                                                                                                            |
-| **votes**                              | A user's vote on a poll  | unique`(created_by, poll_id)`, optional `free_field`; FKs → `users`, `polls`.                                                                                                                                                                                                          |
-| **vote_options**                       | Options chosen by a vote | composite PK`(vote_id, option_id)`.                                                                                                                                                                                                                                                           |
-| **poll_dependencies**                  | Conditional polls        | composite PK`(child_poll_id, option_id)` — a poll gated by a specific option.                                                                                                                                                                                                                |
-| **hashtags** / **poll_hashtags** | Tagging                  | `hashtags.name` unique; `poll_hashtags` join `(poll_id, hashtag_id)`.                                                                                                                                                                                                                     |
-| **poll_templates**                     | Saved poll templates     | join`(user_id, poll_id)`.                                                                                                                                                                                                                                                                     |
-| **friendships**                        | Social graph             | `status` (pending/accepted/rejected), ordered pair `(user_a_id, user_b_id)` + `addressee_id`; enforced by two **DB CHECK constraints** (`user_a_id < user_b_id`; addressee in the pair).                                                                                          |
-| **blocks**                             | User blocking            | unique`(blocker_id, blocked_id)`.                                                                                                                                                                                                                                                             |
-| **reports**                            | Moderation reports       | `reason` enum, `content`, and optional FKs to the reported room/message/poll/option/hashtag.                                                                                                                                                                                                |
-| **bans** / **ban_attachments**   | Bans                     | reason, window (`started_at`/`ended_at`), `banned_by` / `unbanned_by`; optional attachments.                                                                                                                                                                                            |
-| **notifications**                      | User notifications       | `type` (friend_request, friend_accepted, poll_update, room_invitation, room_invitation_accepted, room_message, other), `is_read`, optional `actor_id`.                                                                                                                                    |
-| **api_keys**                           | Public-API credentials   | `key_hash` (unique), `app_name`, `revoked`, `expired_at`; FK `owner_id` → `users` — the identity the API key acts as.                                                                                                                                                             |
+| Table | Purpose | Key fields & relations |
+| :---- | :------ | :--------------------- |
+| **users** | Accounts & profiles | `username` (unique), `email` (unique), `password_hash`, `role` (`user`/`moderator`/`admin`), `gender`, `birthdate`, `nationality`, profile fields, `is_online`, `is_email_verified`, `visibility`, `avatar_url`, `banner_url`, `user_theme`. Hub of the schema. |
+| **oauths** | Linked OAuth identities | `provider` (`google`/`42`/`github`), `provider_user_id`, tokens, `grant_type`; unique `(provider, provider_user_id)`; FK → `users`. |
+| **rooms** | Collaborative spaces | `name`, `description`, `visibility` (public/private), `status`, `ends_at`; FK `created_by` → `users`. |
+| **room_members** | Room membership | unique `(room_id, user_id)`, `joined_at`; FKs → `rooms`, `users`. |
+| **invitations** | Room invites | `status` (pending/accepted/rejected); unique `(invitee_id, room_id)`; FKs → `rooms` + inviter/invitee `users`. |
+| **messages** | Room chat | `content`, FKs `author_id` → `users`, `room_id` → `rooms`. |
+| **polls** | Polls | `type` (single/multiple/slider/free_field), `visibility`, `status` (pending/active/closed), `allow_change_vote`, `is_anonymous`, `published_at`, `ends_at`; FKs `created_by` → `users`, optional `room_id` → `rooms` (SetNull). |
+| **options** | Poll options | `text`, slider labels, `order`; FK → `polls`. |
+| **votes** | A user's vote on a poll | unique `(created_by, poll_id)`, optional `free_field`; FKs → `users`, `polls`. |
+| **vote_options** | Options chosen by a vote | composite PK `(vote_id, option_id)`. |
+| **poll_dependencies** | Conditional polls | composite PK `(child_poll_id, option_id)` — a poll gated by a specific option. |
+| **hashtags** / **poll_hashtags** | Tagging | `hashtags.name` unique; `poll_hashtags` join `(poll_id, hashtag_id)`. |
+| **poll_templates** | Saved poll templates | join `(user_id, poll_id)`. |
+| **friendships** | Social graph | `status` (pending/accepted/rejected), ordered pair `(user_a_id, user_b_id)` + `addressee_id`; enforced by two **DB CHECK constraints** (`user_a_id < user_b_id`; addressee in the pair). |
+| **blocks** | User blocking | unique `(blocker_id, blocked_id)`. |
+| **reports** | Moderation reports | `reason` enum, `content`, and optional FKs to the reported room/message/poll/option/hashtag. |
+| **bans** / **ban_attachments** | Bans | reason, window (`started_at`/`ended_at`), `banned_by` / `unbanned_by`; optional attachments. |
+| **notifications** | User notifications | `type` (friend_request, friend_accepted, poll_update, room_invitation, room_invitation_accepted, room_message, other), `is_read`, optional `actor_id`. |
+| **api_keys** | Public-API credentials | `key_hash` (unique), `app_name`, `revoked`, `expired_at`; FK `owner_id` → `users` — the identity the API key acts as. |
 
 **Relationship highlights.** `users` is the central hub (one-to-many to rooms, polls, votes,
 messages, notifications, API keys; many-to-many to rooms via `room_members`, to other users
@@ -486,58 +488,83 @@ level.
 
 ## Features List
 
-| Feature                                | Description                                                                                                                                                         |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Sign-up / Login**              | Email + password with**Argon2** hashing; email verification; validated on front and back (Zod / class-validator).                                             |
-| **OAuth 2.0 login**              | Sign in with**GitHub**, **42** and **Google**; deferred onboarding for OAuth sign-ups (profile completion).                                       |
-| **User profiles**                | Editable profile, avatar & banner uploads (stored in Garage S3), theme, visibility, bio.                                                                            |
-| **Rooms**                        | Create/join public or private rooms, membership, invitations, room lifecycle (status/expiry).                                                                       |
-| **Live chat**                    | Real-time room messaging over WebSockets, with catch-up after disconnection.                                                                                        |
-| **Polls & voting**               | 4 poll types (single/multiple/slider/free field), anonymous or attributed, vote-change control, hashtags, templates, poll dependencies.                             |
-| **Real-time updates**            | Live propagation of votes, messages, presence and notifications to all connected clients.                                                                           |
-| **Presence**                     | Online/last-seen status, multi-tab presence.                                                                                                                        |
-| **Notifications**                | Complete in-app notification system (friend requests/accepted, poll updates, room invitations & messages).                                                          |
-| **Social graph**                 | Friendships, blocking, reporting users/content.                                                                                                                     |
-| **Personalized feed**            | ML-ranked recommendation feed of polls, with graceful degradation when the AI service is down.                                                                      |
-| **Advanced search**              | Search across the platform's resources.                                                                                                                             |
-| **Public REST API**              | Key-authenticated API over 5 resources (`/me`, `/users`, `/rooms`, `/polls`, `/hashtags`) with pagination and soft-deletes; tenant isolation per API key. |
-| **Roles & permissions**          | user / moderator / admin, ownership- and role-based authorization via CASL.                                                                                         |
-| **Moderation**                   | Reports, bans (with attachments), moderator/admin capabilities.                                                                                                     |
-| **Legal pages**                  | Accessible Privacy Policy and Terms/legal pages.                                                                                                                    |
-| **Responsive, multi-browser UI** | Verified identical rendering on Chromium, Firefox and WebKit; no horizontal overflow at 393 px.                                                                     |
-| **Security hardening**           | WAF (ModSecurity/OWASP CRS), Vault-managed secrets, per-service AppRole.                                                                                            |
-| **Observability**                | Prometheus metrics + Grafana dashboards + Alertmanager.                                                                                                             |
+| Feature | Description |
+| :------ | :---------- |
+| **Sign-up / Login** | Email + password with **Argon2** hashing; email verification; validated on front and back (Zod / class-validator). |
+| **OAuth 2.0 login** | Sign in with **GitHub**, **42** and **Google**; deferred onboarding for OAuth sign-ups (profile completion). |
+| **User profiles** | Editable profile, avatar & banner uploads (stored in Garage S3), theme, visibility, bio. |
+| **Rooms** | Create/join public or private rooms, membership, invitations, room lifecycle (status/expiry). |
+| **Live chat** | Real-time room messaging over WebSockets, with catch-up after disconnection. |
+| **Polls & voting** | 4 poll types (single/multiple/slider/free field), anonymous or attributed, vote-change control, hashtags, templates, poll dependencies. |
+| **Real-time updates** | Live propagation of votes, messages, presence and notifications to all connected clients. |
+| **Presence** | Online/last-seen status, multi-tab presence. |
+| **Notifications** | Complete in-app notification system (friend requests/accepted, poll updates, room invitations & messages). |
+| **Social graph** | Friendships, blocking, reporting users/content. |
+| **Personalized feed** | ML-ranked recommendation feed of polls, with graceful degradation when the AI service is down. |
+| **Advanced search** | Search across the platform's resources. |
+| **Public REST API** | Key-authenticated API over 5 resources (`/me`, `/users`, `/rooms`, `/polls`, `/hashtags`) with pagination and soft-deletes; tenant isolation per API key. |
+| **Roles & permissions** | user / moderator / admin, ownership- and role-based authorization via CASL. |
+| **Moderation** | Reports, bans (with attachments), moderator/admin capabilities. |
+| **Legal pages** | Accessible Privacy Policy and Terms/legal pages. |
+| **Responsive, multi-browser UI** | Verified identical rendering on Chromium, Firefox and WebKit; no horizontal overflow at 393 px. |
+| **Security hardening** | WAF (ModSecurity/OWASP CRS), Vault-managed secrets, per-service AppRole. |
+| **Observability** | Prometheus metrics + Grafana dashboards + Alertmanager. |
 
 ---
 
 ## Modules
 
-Point rule: **Major = 2 pts, Minor = 1 pt.** The modules Pollpear delivers, per the team's
-module plan (`docs/Conception/Recapitulatif-modules.md`):
+Point rule: **Major = 2 pts, Minor = 1 pt**. The table reconciles the module plan
+(`docs/Conception/Recapitulatif-modules.md`) with what the **test campaign**
+(`docs/Testing/Synthese.md`, 2026-08-31) proved defensible.
 
-| Module | Category | Type | Pts | How it is built |
-| :--- | :--- | :--- | :-: | :--- |
-| Frontend framework | Web | Minor | 1 | React 19 + Vite + Tailwind/shadcn. |
-| Backend framework | Web | Minor | 1 | NestJS 11 (modular, DI, guards). |
-| Real-time feature | Web | Major | 2 | Socket.IO gateway + Redis; live votes/chat/presence; catch-up after a network drop. |
-| Complete notification system | Web | Minor | 1 | `Notification` model + real-time delivery (7 types). |
-| Use an ORM | Web | Minor | 1 | Prisma 7 over PostgreSQL, generated Zod schemas. |
-| User-to-user interaction | Web | Major | 2 | Rooms, live chat, friendships and blocking between users. |
-| Public API to the database | Web | Major | 2 | Key-authenticated REST API over 5 resources, with per-key isolation. |
-| Custom design system | Web | Minor | 1 | Bespoke theming and design system on shadcn/Radix. |
-| Advanced search | Web | Minor | 1 | Backend `search` module + `SearchPage`. |
-| Multi-browser support | Accessibility/i18n | Minor | 1 | Identical rendering on Chromium, Firefox and WebKit. |
-| Standard user management & auth | User mgmt | Major | 2 | Email/password (Argon2), email verification, sessions. |
-| OAuth 2.0 | User mgmt | Minor | 1 | GitHub / 42 / Google via Passport. |
-| ML recommendation | AI | Major | 2 | Python/scikit-learn service ranking a personalized feed. |
-| WAF/ModSecurity + Vault | Cybersecurity | Major | 2 | nginx + ModSecurity/OWASP CRS, and HashiCorp Vault for every secret. |
-| Prometheus + Grafana monitoring | DevOps | Major | 2 | Full monitoring stack with node, cAdvisor, postgres and redis exporters. |
-| Microservices backend | DevOps | Major | 2 | Polyglot services: React SPA, Rust gateway, NestJS backend, Python AI. |
-| Health checks, status & backups | DevOps | Minor | 1 | Container health checks and backup tooling. |
-| Custom module (Major) — API gateway | Modules of choice | Major | 2 | Rust/axum edge gateway: session auth, API keys, rate limiting, WebSocket proxy. |
-| Custom module (Minor) — object storage | Modules of choice | Minor | 1 | Garage S3-compatible storage for media (avatars, banners). |
+| Module | Category | Type | Pts | Status | How it is implemented |
+| :----- | :------- | :--- | :-: | :----- | :-------------------- |
+| Frontend framework | Web | Minor | 1 | Implemented | React 19 + Vite + Tailwind/shadcn. |
+| Backend framework | Web | Minor | 1 | Implemented | NestJS 11 (modular, DI, guards). |
+| Real-time feature | Web | **Major** | 2 | **Defended** | Socket.IO gateway + Redis; live votes/chat/presence; catch-up after network drop (propagation ~130–200 ms). |
+| Complete notification system | Web | Minor | 1 | Implemented | `Notification` model + real-time delivery (7 types). |
+| Use an ORM | Web | Minor | 1 | Implemented | Prisma 7 over PostgreSQL, generated Zod schemas. |
+| Advanced search | Web | Minor | 1 | Implemented | Backend `search` module + `SearchPage`. |
+| Standard user management & auth | User mgmt | **Major** | 2 | Implemented | Email/password (Argon2), email verification, sessions. |
+| OAuth 2.0 | User mgmt | Minor | 1 | Implemented | GitHub / 42 / Google via Passport (Google disabled provider-side). |
+| ML recommendation | AI | **Major** | 2 | **Defended** | Python/scikit-learn service ranking a personalized feed; graceful degradation. |
+| WAF/ModSecurity + Vault | Cybersecurity | **Major** | 2 | **Defended** | nginx + ModSecurity/OWASP CRS; HashiCorp Vault for all secrets. No XSS on 5 surfaces; WAF clean on 12 legit inputs. |
+| Prometheus + Grafana monitoring | DevOps | **Major** | 2 | Partial | Full monitoring stack + exporters. **Gap:** backend/gateway `/metrics` and the Alertmanager webhook are not yet wired (see `Synthese.md`). |
+| Health checks, status & backups | DevOps | Minor | 1 | Implemented | Container health checks; backup tooling. |
+| Multi-browser support | Accessibility/i18n | Minor | 1 | **Defended** | Identical rendering on Chromium/Firefox/WebKit. |
+| Custom module (Minor) | Modules of choice | Minor | 1 | Implemented | Garage-backed S3 object storage for media (avatars, banners). |
+| Advanced permission system | User mgmt | **Major** | 2 | **Defended (re-scoped)** | CASL role/ownership rules; the campaign proved 3 distinct role behaviours (`T-020`). Marked "not counted" in the older plan — the campaign corrects this. |
+| Public API to the DB | Web | **Major** | 2 | **Defended** | Key-authenticated REST API over 5 resources; cross-key isolation proven (`T-015`). |
 
-**Point total: 28 pts** — 9 Majors × 2 + 10 Minors × 1.
+**Point total.**
+
+Provisional totals (to validate before defense): the confirmed / implemented modules above
+sum to about **19 pts** (5 Majors × 2 + 9 Minors × 1); adding the two campaign-defended
+Majors (advanced permissions, public API) brings it to about **23 pts**.
+
+Additional module ideas appear as "not decided" (`❌?`) in the plan
+(`docs/Conception/Recapitulatif-modules.md`) — e.g. custom design system,
+internationalization, microservices, analytics dashboard, GDPR, a custom Major. Confirm
+which, if any, are being claimed.
+
+---
+
+## Known Limitations
+
+Documented in the testing campaign (`docs/Testing/Synthese.md`); listed here for honesty.
+
+- **Google OAuth is disabled** provider-side (`Error 401: disabled_client`) — GitHub and 42
+  work end to end. Do not demo Google unless it is re-enabled.
+- **Some seeded accounts cannot log in** — only email-verified accounts (`jojo0`, `apiuser`,
+  `apimoderator`, `apiadmin`) can; others return `403`.
+- **Self-signed certificate** in local runs → the browser warns on first visit.
+- **Monitoring is partial** — the backend and gateway do not yet expose `/metrics`, and the
+  Alertmanager webhook is not wired, so alerts do not fire.
+- **GHCR images may be private** — if `make up_prod` stops on `401` before building, either
+  make the infra packages public or `docker login ghcr.io` first.
+- Other smaller issues (rate-limiting coverage, session revocation on password change, a
+  single seed salt, the `/admin` page) are tracked in `docs/Testing/`.
 
 ---
 
