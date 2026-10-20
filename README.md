@@ -356,11 +356,11 @@ Roles are based on the team's project-management minutes.
 
 | 42 login | Member (GitHub) | Nickname | Role (per 2026-08-20 minutes) |
 | :------- | :-------------- | :------- | :---------------------------- |
-| `blucken` | `blucken` | Ben | **Tech Lead** |
+| `blucken` | `blucken` | Ben | **Security Engineer** |
 | `hlichten` | `Hyliah` | Hygie | **Product Owner (PO)** |
 | `jrandet` | `jrandetdev` (Joséphine Randet) | Jo | **Project Manager (PM)** |
-| `pdemont` | `pieric-ux` (Pieric Demont) | Pieric | **Developer** |
-| `raphalme` | `RaphyStoll` (Raphaël Ferreira) | Raph | **Developer** |
+| `pdemont` | `pieric-ux` (Pieric Demont) | Pieric | **Tech Lead** |
+| `raphalme` | `RaphyStoll` (Raphaël Ferreira) | Raph | **DevOps Engineer** |
 
 ---
 
