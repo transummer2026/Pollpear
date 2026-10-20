@@ -1,28 +1,28 @@
 [submodule "Pollpear_ai"]
 	path = Pollpear_ai
-	url = git@github.com:transummer2026/Pollpear_ai.git
+	url = https://github.com/transummer2026/Pollpear_ai.git
 	branch = dev
 [submodule "Pollpear_frontend"]
 	path = Pollpear_frontend
-	url = git@github.com:transummer2026/Pollpear_frontend.git
+	url = https://github.com/transummer2026/Pollpear_frontend.git
 	branch = dev
 [submodule "Pollpear_cyber"]
 	path = Pollpear_cyber
-	url = git@github.com:transummer2026/Pollpear_cyber.git
+	url = https://github.com/transummer2026/Pollpear_cyber.git
 	branch = dev
 [submodule "Pollpear_gateway"]
 	path = Pollpear_gateway
-	url = git@github.com:transummer2026/Pollpear_gateway.git
+	url = https://github.com/transummer2026/Pollpear_gateway.git
 	branch = dev
 [submodule "Pollpear_infra"]
 	path = Pollpear_infra
-	url = git@github.com:transummer2026/Pollpear_infra.git
+	url = https://github.com/transummer2026/Pollpear_infra.git
 	branch = dev
 [submodule "docs"]
 	path = docs
-	url = git@github.com:transummer2026/docs.git
+	url = https://github.com/transummer2026/docs.git
 	branch = main
 [submodule "Pollpear_backend"]
 	path = Pollpear_backend
-	url = git@github.com:transummer2026/Pollpear_backend.git
+	url = https://github.com/transummer2026/Pollpear_backend.git
 	branch = dev

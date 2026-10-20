@@ -81,7 +81,6 @@ This section takes a newcomer from an empty machine to a fully running Pollpear.
 | **make** | GNU Make. |
 | **Docker Engine + Compose v2** | The `docker compose` (v2) subcommand is required. **Rootless Docker is supported and is what the evaluation machine uses.** |
 | **Disk space** | ≈ 18 GB free for images, build cache and repositories. A cold, full rebuild can take 20–30 min, so keep the build cache between runs. |
-| **SSH access** | An SSH key authorized on the `transummer2026` GitHub organization, to clone the repo and its private submodules over SSH. |
 | **The two `.env` files** | Not versioned — obtained from the team and placed as described [below](#the-two-env-files). |
 
 > **Ports & rootless Docker.** Under rootless Docker, unprivileged users cannot bind ports
@@ -94,11 +93,13 @@ This section takes a newcomer from an empty machine to a fully running Pollpear.
 **1. Clone the superrepo with its submodules.**
 
 ```sh
-git clone --recursive git@github.com:transummer2026/Pollpear.git
+git clone --recursive https://github.com/transummer2026/Pollpear.git
 cd Pollpear
 ```
 
-The submodules are pinned. `--recursive` is mandatory. After any `git pull`, refresh them:
+Every repository is public and the submodules resolve over HTTPS, so no GitHub account
+or SSH key is needed. The submodules are pinned, so `--recursive` is mandatory. After
+any `git pull`, refresh them:
 
 ```sh
 git submodule update --init --recursive
